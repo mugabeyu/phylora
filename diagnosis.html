@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phylora - Plant Diagnosis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(82, 196, 26, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo::before {
+            content: "🌱";
+            margin-right: 12px;
+            font-size: 28px;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-icon {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .header-icon:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4d4f;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 25px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #722ed1, #9254de);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .diagnose-btn {
+            background: linear-gradient(135deg, #389e0d, #237804);
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .diagnose-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(56, 158, 13, 0.4);
+        }
+
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(82, 196, 26, 0.1);
+            border-left-color: #52c41a;
+            transform: translateX(5px);
+        }
+
+        .sidebar-item.active {
+            background: rgba(82, 196, 26, 0.15);
+            border-left-color: #52c41a;
+            font-weight: 600;
+        }
+
+        .sidebar-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 20px;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+        }
+
+        .main-content {
+            flex: 2;
+        }
+
+        .sidebar-right {
+            flex: 1;
+            max-width: 350px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-title i {
+            font-size: 24px;
+            color: #52c41a;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e6f2e6;
+            border-radius: 8px;
+            background: #fafafa;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus, .form-textarea:focus {
+            border-color: #52c41a;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(82, 196, 26, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border: 2px solid #e6f2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: #52c41a;
+            background: rgba(82, 196, 26, 0.05);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #52c41a;
+        }
+
+        .video-area, .camera-area {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 2px dashed #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .video-area:hover, .camera-area:hover {
+            border-color: #52c41a;
+            background: rgba(82, 196, 26, 0.05);
+        }
+
+        .camera-icon {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .video-text {
+            color: #666;
+            font-size: 14px;
+            display: block;
+        }
+
+        video, canvas {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(82, 196, 26, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #52c41a;
+            border: 2px solid #52c41a;
+        }
+
+        .btn-outline:hover {
+            background: #52c41a;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .diagnosis-result {
+            background: linear-gradient(135deg, #e6f7e6, #d4f0d4);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #52c41a;
+        }
+
+        .diagnosis-result h2 {
+            color: #237804;
+            margin-bottom: 15px;
+        }
+
+        .diagnosis-result p {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .recent-diagnoses, .expert-help {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .recent-title, .expert-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .diagnosis-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .diagnosis-item:hover {
+            background: rgba(82, 196, 26, 0.05);
+            padding-left: 10px;
+            border-radius: 8px;
+        }
+
+        .diagnosis-item:last-child {
+            border-bottom: none;
+        }
+
+        .diagnosis-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .diagnosis-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .diagnosis-date, .diagnosis-status {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .view-all {
+            color: #52c41a;
+            text-decoration: none;
+            font-size: 14px;
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .expert-help {
+            background: linear-gradient(135deg, #e6f7e6, #d4f0d4);
+            text-align: center;
+        }
+
+        .expert-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .connect-btn {
+            width: 100%;
+        }
+
+        .sensor-display {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .sensor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sensor-item:last-child {
+            border-bottom: none;
+        }
+
+        .sensor-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .sensor-value {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: #dc3545;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #52c41a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification-banner {
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 4px 20px rgba(82, 196, 26, 0.3);
+        }
+
+        .hamburger, .close-btn {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-bar {
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .hamburger, .close-btn {
+                display: block;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                z-index: 1000;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-container {
+                flex-direction: column;
+                padding: 15px;
+            }
+
+            .content {
+                flex-direction: column;
+            }
+
+            .sidebar-right {
+                max-width: 100%;
+            }
+
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification-banner" id="notificationBanner">
+        <span id="notificationMessage"></span>
+        <button onclick="dismissNotification()" style="background: none; border: none; color: white; margin-left: 15px; cursor: pointer;">✖</button>
+    </div>
+
+    <div class="header">
+        <button class="hamburger" id="hamburgerBtn">☰</button>
+        <div class="logo">Phylora</div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search plants, diseases, or experts...">
+        </div>
+        <div class="header-right">
+            <div class="header-icons">
+                <div class="header-icon" id="notificationIcon">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                </div>
+                <div class="header-icon" id="messageIcon">
+                    <i class="fas fa-envelope"></i>
+                    <span class="notification-badge" id="messageBadge" style="display: none;">0</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <div>
+                    <div id="userName">Dr. Sarah Green</div>
+                    <div id="userRole" style="font-size: 12px; opacity: 0.8;">Plant Specialist</div>
+                </div>
+                <div class="avatar" id="userAvatar">SG</div>
+            </div>
+            <button class="diagnose-btn" id="diagnoseBtn">Quick Diagnose</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar" id="sidebar">
+            <button class="close-btn" id="closeSidebarBtn">✖</button>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-home"></i></span>Dashboard</a>
+            <a href="#" class="sidebar-item active"><span class="sidebar-icon"><i class="fas fa-leaf"></i></span>Plant Diagnosis</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-seedling"></i></span>My Garden</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-users"></i></span>Community</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-book"></i></span>Plant Library</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-calendar"></i></span>Care Schedule</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-comments"></i></span>Messages</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-bell"></i></span>Notifications</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-user"></i></span>Profile</a>
+            <a href="#" class="sidebar-item"><span class="sidebar-icon"><i class="fas fa-cog"></i></span>Settings</a>
+        </div>
+
+        <div class="content">
+            <div class="main-content">
+                <h1 class="page-title">Plant Health Diagnosis</h1>
+                <p class="page-subtitle">Use advanced AI to identify plant diseases and get treatment recommendations</p>
+
+                <div id="diagnosisResult" class="diagnosis-result" style="display: none;">
+                    <h2><i class="fas fa-check-circle"></i> Diagnosis Complete</h2>
+                    <p id="diagnosisText"></p>
+                    <p id="speciesInfo"></p>
+                    <p id="treatmentPlan"></p>
+                    <p id="confidenceScore"></p>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Plant Information
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Plant Type</label>
+                        <select class="form-select" id="plantType">
+                            <option value="">Select plant type</option>
+                            <option value="Houseplant">Houseplant</option>
+                            <option value="Garden Plant">Garden Plant</option>
+                            <option value="Tree">Tree</option>
+                            <option value="Shrub">Shrub</option>
+                            <option value="Flower">Flower</option>
+                            <option value="Vegetable">Vegetable</option>
+                            <option value="Herb">Herb</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Describe Symptoms</label>
+                        <textarea class="form-textarea" id="symptoms" placeholder="Describe what you're observing (e.g., yellow leaves, brown spots, wilting, pest damage)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Affected Plant Parts</label>
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="leaves">
+                                <label for="leaves"><i class="fas fa-leaf"></i> Leaves</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="stems">
+                                <label for="stems"><i class="fas fa-grip-lines-vertical"></i> Stems</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="flowers">
+                                <label for="flowers"><i class="fas fa-flower"></i> Flowers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="roots">
+                                <label for="roots"><i class="fas fa-project-diagram"></i> Roots</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-camera"></i>
+                        Plant Image Capture
+                    </div>
+                    
+                    <div class="camera-area">
+                        <div class="camera-icon"><i class="fas fa-camera"></i></div>
+                        <div class="video-text">Camera will appear here</div>
+                        <video id="videoFeed" autoplay playsinline style="display: none;"></video>
+                        <img id="capturedImage" style="display: none; width: 100%; border-radius: 12px; margin-top: 15px;" alt="Captured plant image">
+                    </div>
+
+                    <div class="status-indicator status-error" id="cameraStatus" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Camera access required for diagnosis
+                    </div>
+
+                    <button class="btn btn-outline" id="startCameraBtn">
+                        <i class="fas fa-video"></i> Start Camera
+                    </button>
+                    <button class="btn" id="captureBtn" disabled>
+                        <i class="fas fa-camera"></i> Capture Image
+                    </button>
+                    <button class="btn" id="diagnoseBtnMain" disabled>
+                        <i class="fas fa-search"></i> Analyze Plant
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <!-- GPS & Map Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location & Environmental Data
+                        </div>
+                        
+                        <div class="map-container" style="height: 200px; border-radius: 12px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 2px dashed #ddd; position: relative; overflow: hidden;">
+                            <div class="map-placeholder" id="mapPlaceholder">
+                                <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 10px;"></i>
+                                <p>Click "Get Location" to show map</p>
+                            </div>
+                            <div id="map" style="display: none; width: 100%; height: 100%;"></div>
+                        </div>
+                        
+                        <button class="btn" id="locationBtn">
+                            <i class="fas fa-crosshairs"></i> Get Current Location
+                        </button>
+                        
+                        <div class="sensor-display">
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-map-pin"></i> GPS Coordinates:</span>
+                                <span class="sensor-value" id="gpsDisplay">Not available</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-thermometer-half"></i> Temperature:</span>
+                                <span class="sensor-value" id="tempDisplay">--°C</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-eye"></i> Humidity:</span>
+                                <span class="sensor-value" id="humidityDisplay">--%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audio Recording Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-microphone"></i>
+                            Audio Notes
+                        </div>
+                        
+                        <div class="recording-indicator" id="recordingIndicator">
+                            <div class="pulse"></div>
+                            Recording in progress...
+                        </div>
+                        
+                        <div class="audio-controls">
+                            <button class="btn" id="startRecordBtn">
+                                <i class="fas fa-microphone"></i> Start Recording
+                            </button>
+                            <button class="btn btn-danger" id="stopRecordBtn" disabled>
+                                <i class="fas fa-stop"></i> Stop Recording
+                            </button>
+                        </div>
+                        
+                        <audio id="audioPreview" controls style="display: none; width: 100%; margin-top: 15px;"></audio>
+                    </div>
+
+                    <!-- Device Motion Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-mobile-alt"></i>
+                            Device Motion Data
+                        </div>
+                        
+                        <div class="sensor-display">
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-arrows-alt"></i> Acceleration X:</span>
+                                <span class="sensor-value" id="accelX">0.00 m/s²</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-arrows-alt-v"></i> Acceleration Y:</span>
+                                <span class="sensor-value" id="accelY">0.00 m/s²</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-arrows-alt"></i> Acceleration Z:</span>
+                                <span class="sensor-value" id="accelZ">0.00 m/s²</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-compass"></i> Movement:</span>
+                                <span class="sensor-value" id="accelStatus">Stationary</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Device Orientation Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-compass"></i>
+                            Device Orientation
+                        </div>
+                        
+                        <div class="sensor-display">
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-angle-right"></i> Alpha (Z):</span>
+                                <span class="sensor-value" id="orientationAlpha">0.00°</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-angle-up"></i> Beta (X):</span>
+                                <span class="sensor-value" id="orientationBeta">0.00°</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-angle-left"></i> Gamma (Y):</span>
+                                <span class="sensor-value" id="orientationGamma">0.00°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Battery Status Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-battery-full"></i>
+                            Battery Status
+                        </div>
+                        
+                        <div class="sensor-display">
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-battery-half"></i> Level:</span>
+                                <span class="sensor-value" id="batteryLevel">Checking...</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-plug"></i> Charging:</span>
+                                <span class="sensor-value" id="batteryCharging">Checking...</span>
+                            </div>
+                            <div class="battery-level" id="batteryBar" style="width: 100px; height: 20px; border: 2px solid #333; border-radius: 4px; margin-top: 10px; overflow: hidden; position: relative;">
+                                <div class="battery-fill" id="batteryFill" style="height: 100%; background-color: #4CAF50; transition: width 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Information -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-wifi"></i>
+                            Network Information
+                        </div>
+                        
+                        <div class="sensor-display">
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-signal"></i> Connection Type:</span>
+                                <span class="sensor-value" id="networkType">Checking...</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-tachometer-alt"></i> Effective Type:</span>
+                                <span class="sensor-value" id="effectiveType">Checking...</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label"><i class="fas fa-download"></i> Downlink:</span>
+                                <span class="sensor-value" id="downlink">Checking...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-right">
+                <div class="recent-diagnoses">
+                    <h3 class="recent-title"><i class="fas fa-history"></i> Recent Diagnoses</h3>
+                    <div id="recentDiagnoses">
+                        <div class="diagnosis-item">
+                            <div class="diagnosis-image">🌹</div>
+                            <div class="diagnosis-info">
+                                <h4>Rose Bush</h4>
+                                <div class="diagnosis-date">Diagnosed: March 15, 2024</div>
+                                <div class="diagnosis-status">Black Spot Disease</div>
+                            </div>
+                        </div>
+                        <div class="diagnosis-item">
+                            <div class="diagnosis-image">🌿</div>
+                            <div class="diagnosis-info">
+                                <h4>Monstera Plant</h4>
+                                <div class="diagnosis-date">Diagnosed: March 12, 2024</div>
+                                <div class="diagnosis-status">Overwatering</div>
+                            </div>
+                        </div>
+                        <div class="diagnosis-item">
+                            <div class="diagnosis-image">🌻</div>
+                            <div class="diagnosis-info">
+                                <h4>Sunflower</h4>
+                                <div class="diagnosis-date">Diagnosed: March 10, 2024</div>
+                                <div class="diagnosis-status">Healthy</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="view-all">View All History →</a>
+                </div>
+
+                <div class="expert-help">
+                    <h3 class="expert-title"><i class="fas fa-user-md"></i> Expert Consultation</h3>
+                    <p class="expert-text">Need personalized advice? Connect with our certified plant specialists for detailed treatment plans.</p>
+                    <button class="btn connect-btn" id="connectBtn">
+                        <i class="fas fa-comments"></i> Connect with Expert
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-lightbulb"></i>
+                        Quick Tips
+                    </div>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><i class="fas fa-camera" style="color: #52c41a; margin-right: 10px;"></i>Take photos in good lighting</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><i class="fas fa-leaf" style="color: #52c41a; margin-right: 10px;"></i>Include multiple angles of affected areas</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><i class="fas fa-clock" style="color: #52c41a; margin-right: 10px;"></i>Monitor changes over time</li>
+                        <li style="padding: 8px 0;"><i class="fas fa-notes-medical" style="color: #52c41a; margin-right: 10px;"></i>Note recent changes in care routine</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const AppState = {
+            currentUser: {
+                name: "Dr. Sarah Green",
+                role: "Plant Specialist",
+                avatar: "SG",
+                email: "sarah.green@phylora.com",
+                experience: "15 years",
+                specialization: "Disease Diagnosis"
+            },
+            videoStream: null,
+            capturedImage: null,
+            isRecording: false,
+            notifications: [],
+            recentDiagnoses: [
+                {
+                    id: 1,
+                    plantType: "Rose Bush",
+                    diagnosis: "Black Spot Disease",
+                    date: "2024-03-15",
+                    confidence: 92,
+                    treatment: "Apply fungicide spray weekly"
+                },
+                {
+                    id: 2,
+                    plantType: "Monstera Plant",
+                    diagnosis: "Overwatering",
+                    date: "2024-03-12",
+                    confidence: 87,
+                    treatment: "Reduce watering frequency"
+                },
+                {
+                    id: 3,
+                    plantType: "Sunflower",
+                    diagnosis: "Healthy",
+                    date: "2024-03-10",
+                    confidence: 95,
+                    treatment: "Continue current care routine"
+                }
+            ]
+        };
+
+        // Utility Functions
+        const Utils = {
+            showNotification(message, type = 'success') {
+                const banner = document.getElementById('notificationBanner');
+                const messageEl = document.getElementById('notificationMessage');
+                
+                messageEl.textContent = message;
+                banner.style.display = 'block';
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 5000);
+                
+                // Add to notifications array
+                AppState.notifications.unshift({
+                    message,
+                    type,
+                    timestamp: new Date().toISOString()
+                });
+                
+                this.updateNotificationBadge();
+            },
+
+            updateNotificationBadge() {
+                const badge = document.getElementById('notificationBadge');
+                const count = AppState.notifications.length;
+                
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            },
+
+            formatDate(dateString) {
+                const options = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                };
+                return new Date(dateString).toLocaleDateString('en-US', options);
+            },
+
+            generateMockDiagnosis(plantType, symptoms) {
+                const diagnoses = {
+                    'Houseplant': [
+                        { diagnosis: 'Root Rot', confidence: 85, treatment: 'Repot with fresh soil, reduce watering' },
+                        { diagnosis: 'Pest Infestation', confidence: 78, treatment: 'Apply neem oil treatment' },
+                        { diagnosis: 'Nutrient Deficiency', confidence: 92, treatment: 'Apply balanced fertilizer' }
+                    ],
+                    'Garden Plant': [
+                        { diagnosis: 'Fungal Disease', confidence: 88, treatment: 'Apply fungicide and improve air circulation' },
+                        { diagnosis: 'Bacterial Infection', confidence: 82, treatment: 'Remove affected parts, apply copper spray' },
+                        { diagnosis: 'Viral Disease', confidence: 75, treatment: 'Remove infected plants to prevent spread' }
+                    ],
+                    'Tree': [
+                        { diagnosis: 'Canker Disease', confidence: 90, treatment: 'Prune affected branches, apply wound sealant' },
+                        { diagnosis: 'Scale Insects', confidence: 85, treatment: 'Apply horticultural oil treatment' },
+                        { diagnosis: 'Drought Stress', confidence: 88, treatment: 'Increase watering frequency' }
+                    ]
+                };
+
+                const possibleDiagnoses = diagnoses[plantType] || diagnoses['Houseplant'];
+                return possibleDiagnoses[Math.floor(Math.random() * possibleDiagnoses.length)];
+            }
+        };
+
+        // Camera Management
+        const CameraManager = {
+            async initialize() {
+                const video = document.getElementById('videoFeed');
+                const status = document.getElementById('cameraStatus');
+                const startBtn = document.getElementById('startCameraBtn');
+                const captureBtn = document.getElementById('captureBtn');
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        } 
+                    });
+                    
+                    video.srcObject = stream;
+                    AppState.videoStream = stream;
+                    
+                    video.style.display = 'block';
+                    document.querySelector('.camera-icon').style.display = 'none';
+                    document.querySelector('.video-text').style.display = 'none';
+                    status.style.display = 'none';
+                    
+                    startBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Camera';
+                    captureBtn.disabled = false;
+                    
+                    Utils.showNotification('Camera initialized successfully');
+                    
+                } catch (error) {
+                    console.error('Camera access denied:', error);
+                    status.style.display = 'block';
+                    Utils.showNotification('Camera access denied. Please allow camera permissions.', 'error');
+                }
+            },
+
+            stop() {
+                if (AppState.videoStream) {
+                    AppState.videoStream.getTracks().forEach(track => track.stop());
+                    AppState.videoStream = null;
+                    
+                    const video = document.getElementById('videoFeed');
+                    video.srcObject = null;
+                    video.style.display = 'none';
+                    
+                    document.querySelector('.camera-icon').style.display = 'block';
+                    document.querySelector('.video-text').style.display = 'block';
+                    
+                    document.getElementById('startCameraBtn').innerHTML = '<i class="fas fa-video"></i> Start Camera';
+                    document.getElementById('captureBtn').disabled = true;
+                    document.getElementById('diagnoseBtnMain').disabled = true;
+                }
+            },
+
+            toggle() {
+                if (AppState.videoStream) {
+                    this.stop();
+                } else {
+                    this.initialize();
+                }
+            },
+
+            capture() {
+                const video = document.getElementById('videoFeed');
+                const canvas = document.createElement('canvas');
+                const capturedImage = document.getElementById('capturedImage');
+                
+                if (!video.srcObject) {
+                    Utils.showNotification('Please start camera first', 'error');
+                    return;
+                }
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                
+                const imageData = canvas.toDataURL('image/png');
+                AppState.capturedImage = imageData;
+                
+                capturedImage.src = imageData;
+                capturedImage.style.display = 'block';
+                
+                document.getElementById('diagnoseBtnMain').disabled = false;
+                Utils.showNotification('Image captured successfully');
+            }
+        };
+
+        // Diagnosis System
+        const DiagnosisSystem = {
+            async performDiagnosis() {
+                const plantType = document.getElementById('plantType').value;
+                const symptoms = document.getElementById('symptoms').value;
+                const diagnosisBtn = document.getElementById('diagnoseBtnMain');
+                const quickBtn = document.getElementById('diagnoseBtn');
+                
+                // Validation
+                if (!plantType || !symptoms.trim()) {
+                    Utils.showNotification('Please select plant type and describe symptoms', 'error');
+                    return;
+                }
+                
+                if (!AppState.capturedImage) {
+                    Utils.showNotification('Please capture an image first', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                diagnosisBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                diagnosisBtn.disabled = true;
+                quickBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                quickBtn.disabled = true;
+                
+                try {
+                    // Simulate API call delay
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Generate mock diagnosis
+                    const result = Utils.generateMockDiagnosis(plantType, symptoms);
+                    
+                    // Get affected areas
+                    const affectedAreas = Array.from(document.querySelectorAll('.checkbox-grid input:checked'))
+                        .map(input => input.nextElementSibling.textContent.trim());
+                    
+                    // Display results
+                    this.displayResults({
+                        plantType,
+                        symptoms,
+                        affectedAreas,
+                        ...result
+                    });
+                    
+                    // Add to recent diagnoses
+                    this.addToRecent({
+                        plantType,
+                        diagnosis: result.diagnosis,
+                        date: new Date().toISOString().split('T')[0],
+                        confidence: result.confidence,
+                        treatment: result.treatment
+                    });
+                    
+                    Utils.showNotification(`Diagnosis complete: ${result.diagnosis}`);
+                    
+                } catch (error) {
+                    console.error('Diagnosis error:', error);
+                    Utils.showNotification('Diagnosis failed. Please try again.', 'error');
+                } finally {
+                    // Reset buttons
+                    diagnosisBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Plant';
+                    diagnosisBtn.disabled = false;
+                    quickBtn.innerHTML = 'Quick Diagnose';
+                    quickBtn.disabled = false;
+                }
+            },
+
+            displayResults(data) {
+                const resultDiv = document.getElementById('diagnosisResult');
+                const diagnosisText = document.getElementById('diagnosisText');
+                const speciesInfo = document.getElementById('speciesInfo');
+                const treatmentPlan = document.getElementById('treatmentPlan');
+                const confidenceScore = document.getElementById('confidenceScore');
+                
+                diagnosisText.innerHTML = `<strong>Identified Issue:</strong> ${data.diagnosis}`;
+                speciesInfo.innerHTML = `<strong>Plant Type:</strong> ${data.plantType} | <strong>Affected Areas:</strong> ${data.affectedAreas.join(', ') || 'Not specified'}`;
+                treatmentPlan.innerHTML = `<strong>Recommended Treatment:</strong> ${data.treatment}`;
+                confidenceScore.innerHTML = `<strong>Confidence Level:</strong> ${data.confidence}%`;
+                
+                resultDiv.style.display = 'block';
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            },
+
+            addToRecent(diagnosis) {
+                AppState.recentDiagnoses.unshift({
+                    id: Date.now(),
+                    ...diagnosis
+                });
+                
+                // Keep only last 5 diagnoses
+                if (AppState.recentDiagnoses.length > 5) {
+                    AppState.recentDiagnoses = AppState.recentDiagnoses.slice(0, 5);
+                }
+                
+                this.updateRecentDisplay();
+            },
+
+            updateRecentDisplay() {
+                const container = document.getElementById('recentDiagnoses');
+                
+                container.innerHTML = AppState.recentDiagnoses.slice(0, 3).map(item => `
+                    <div class="diagnosis-item">
+                        <div class="diagnosis-image">${this.getPlantEmoji(item.plantType)}</div>
+                        <div class="diagnosis-info">
+                            <h4>${item.plantType}</h4>
+                            <div class="diagnosis-date">Diagnosed: ${Utils.formatDate(item.date)}</div>
+                            <div class="diagnosis-status">${item.diagnosis} (${item.confidence}%)</div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            getPlantEmoji(plantType) {
+                const emojis = {
+                    'Houseplant': '🪴',
+                    'Garden Plant': '🌿',
+                    'Tree': '🌳',
+                    'Shrub': '🌲',
+                    'Flower': '🌸',
+                    'Vegetable': '🥬',
+                    'Herb': '🌱'
+                };
+                return emojis[plantType] || '🌱';
+            }
+        };
+
+        // Location Services
+        const LocationManager = {
+            async getCurrentLocation() {
+                const gpsDisplay = document.getElementById('gpsDisplay');
+                const locationBtn = document.getElementById('locationBtn');
+                const mapPlaceholder = document.getElementById('mapPlaceholder');
+                const mapDiv = document.getElementById('map');
+                
+                if (!navigator.geolocation) {
+                    Utils.showNotification('Geolocation not supported', 'error');
+                    return;
+                }
+                
+                locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
+                locationBtn.disabled = true;
+                
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 300000
+                        });
+                    });
+                    
+                    const { latitude, longitude } = position.coords;
+                    gpsDisplay.textContent = `Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}`;
+                    
+                    // Show map
+                    mapPlaceholder.style.display = 'none';
+                    mapDiv.style.display = 'block';
+                    
+                    const bbox = [
+                        (Number(longitude) - 0.005).toFixed(6),
+                        (Number(latitude) - 0.005).toFixed(6),
+                        (Number(longitude) + 0.005).toFixed(6),
+                        (Number(latitude) + 0.005).toFixed(6)
+                    ];
+
+                    mapDiv.innerHTML = `
+                        <iframe width="100%" height="100%" frameborder="0" style="border:0; border-radius: 12px;"
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}&layer=mapnik&marker=${latitude},${longitude}" allowfullscreen>
+                        </iframe>
+                    `;
+                    
+                    // Simulate weather data based on location
+                    this.updateEnvironmentalData(latitude, longitude);
+                    
+                    Utils.showNotification('Location obtained successfully');
+                    
+                } catch (error) {
+                    console.error('Location error:', error);
+                    gpsDisplay.textContent = 'Location unavailable';
+                    Utils.showNotification('Could not get location', 'error');
+                } finally {
+                    locationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Get Current Location';
+                    locationBtn.disabled = false;
+                }
+            },
+
+            updateEnvironmentalData(lat, lng) {
+                // Simulate environmental data based on location
+                const temp = Math.round(15 + Math.random() * 20); // 15-35°C
+                const humidity = Math.round(40 + Math.random() * 40); // 40-80%
+                
+                document.getElementById('tempDisplay').textContent = `${temp}°C`;
+                document.getElementById('humidityDisplay').textContent = `${humidity}%`;
+            }
+        };
+
+        // Audio Recording Manager
+        const AudioManager = {
+            mediaRecorder: null,
+            audioChunks: [],
+
+            async startRecording() {
+                const startBtn = document.getElementById('startRecordBtn');
+                const stopBtn = document.getElementById('stopRecordBtn');
+                const indicator = document.getElementById('recordingIndicator');
+                const preview = document.getElementById('audioPreview');
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    Utils.showNotification('Audio recording not supported', 'error');
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioChunks = [];
+                    
+                    this.mediaRecorder.ondataavailable = (e) => {
+                        this.audioChunks.push(e.data);
+                    };
+                    
+                    this.mediaRecorder.onstop = () => {
+                        const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                        preview.src = URL.createObjectURL(blob);
+                        preview.style.display = 'block';
+                        
+                        // Stop all tracks to release microphone
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    this.mediaRecorder.start();
+                    
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    indicator.classList.add('active');
+                    
+                    Utils.showNotification('Recording started');
+                    
+                } catch (error) {
+                    console.error('Microphone access denied:', error);
+                    Utils.showNotification('Microphone access denied', 'error');
+                }
+            },
+
+            stopRecording() {
+                const startBtn = document.getElementById('startRecordBtn');
+                const stopBtn = document.getElementById('stopRecordBtn');
+                const indicator = document.getElementById('recordingIndicator');
+
+                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                    this.mediaRecorder.stop();
+                    
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    indicator.classList.remove('active');
+                    
+                    Utils.showNotification('Recording stopped');
+                }
+            }
+        };
+
+        // Device Sensors Manager
+        const SensorsManager = {
+            initializeMotionSensors() {
+                const accelX = document.getElementById('accelX');
+                const accelY = document.getElementById('accelY');
+                const accelZ = document.getElementById('accelZ');
+                const accelStatus = document.getElementById('accelStatus');
+
+                if (window.DeviceMotionEvent) {
+                    window.addEventListener('devicemotion', (event) => {
+                        const x = event.accelerationIncludingGravity?.x || 0;
+                        const y = event.accelerationIncludingGravity?.y || 0;
+                        const z = event.accelerationIncludingGravity?.z || 0;
+                        
+                        accelX.textContent = x.toFixed(2) + " m/s²";
+                        accelY.textContent = y.toFixed(2) + " m/s²";
+                        accelZ.textContent = z.toFixed(2) + " m/s²";
+                        
+                        const movement = (Math.abs(x) + Math.abs(y) + Math.abs(z)) > 2 ? 'Moving' : 'Stationary';
+                        accelStatus.textContent = movement;
+                    });
+                } else {
+                    accelX.textContent = accelY.textContent = accelZ.textContent = 'N/A';
+                    accelStatus.textContent = 'Not supported';
+                }
+            },
+
+            initializeOrientationSensors() {
+                const orientationAlpha = document.getElementById('orientationAlpha');
+                const orientationBeta = document.getElementById('orientationBeta');
+                const orientationGamma = document.getElementById('orientationGamma');
+
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', (event) => {
+                        orientationAlpha.textContent = event.alpha ? event.alpha.toFixed(2) + "°" : 'N/A';
+                        orientationBeta.textContent = event.beta ? event.beta.toFixed(2) + "°" : 'N/A';
+                        orientationGamma.textContent = event.gamma ? event.gamma.toFixed(2) + "°" : 'N/A';
+                    });
+                } else {
+                    orientationAlpha.textContent = orientationBeta.textContent = orientationGamma.textContent = 'N/A';
+                }
+            },
+
+            initializeBattery() {
+                const batteryLevel = document.getElementById('batteryLevel');
+                const batteryCharging = document.getElementById('batteryCharging');
+                const batteryBar = document.getElementById('batteryBar');
+                const batteryFill = document.getElementById('batteryFill');
+
+                if ('getBattery' in navigator) {
+                    navigator.getBattery().then((battery) => {
+                        const updateBattery = () => {
+                            const level = (battery.level * 100).toFixed(0);
+                            batteryLevel.textContent = `${level}%`;
+                            batteryFill.style.width = `${level}%`;
+                            
+                            // Change color based on battery level
+                            if (level < 20) {
+                                batteryFill.style.backgroundColor = '#dc3545';
+                                batteryBar.classList.add('battery-low');
+                            } else {
+                                batteryFill.style.backgroundColor = '#4CAF50';
+                                batteryBar.classList.remove('battery-low');
+                            }
+                            
+                            batteryCharging.textContent = battery.charging ? 'Yes' : 'No';
+                        };
+                        
+                        updateBattery();
+                        battery.addEventListener('levelchange', updateBattery);
+                        battery.addEventListener('chargingchange', updateBattery);
+                    });
+                } else {
+                    batteryLevel.textContent = 'Not supported';
+                    batteryCharging.textContent = 'Not supported';
+                }
+            },
+
+            initializeNetworkInfo() {
+                const networkType = document.getElementById('networkType');
+                const effectiveType = document.getElementById('effectiveType');
+                const downlink = document.getElementById('downlink');
+
+                if ('connection' in navigator) {
+                    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    
+                    if (connection) {
+                        const updateNetworkInfo = () => {
+                            networkType.textContent = connection.type || 'Unknown';
+                            effectiveType.textContent = connection.effectiveType || 'Unknown';
+                            downlink.textContent = connection.downlink ? `${connection.downlink} Mbps` : 'Unknown';
+                        };
+                        
+                        updateNetworkInfo();
+                        connection.addEventListener('change', updateNetworkInfo);
+                    } else {
+                        networkType.textContent = 'Not supported';
+                        effectiveType.textContent = 'Not supported';
+                        downlink.textContent = 'Not supported';
+                    }
+                } else {
+                    networkType.textContent = 'Not supported';
+                    effectiveType.textContent = 'Not supported';
+                    downlink.textContent = 'Not supported';
+                }
+            },
+
+            initializeAllSensors() {
+                this.initializeMotionSensors();
+                this.initializeOrientationSensors();
+                this.initializeBattery();
+                this.initializeNetworkInfo();
+            }
+        };
+
+        // Event Listeners
+        function initializeEventListeners() {
+            // Camera controls
+            document.getElementById('startCameraBtn').addEventListener('click', () => {
+                CameraManager.toggle();
+            });
+            
+            document.getElementById('captureBtn').addEventListener('click', () => {
+                CameraManager.capture();
+            });
+            
+            // Diagnosis
+            document.getElementById('diagnoseBtnMain').addEventListener('click', () => {
+                DiagnosisSystem.performDiagnosis();
+            });
+            
+            document.getElementById('diagnoseBtn').addEventListener('click', () => {
+                DiagnosisSystem.performDiagnosis();
+            });
+            
+            // Location
+            document.getElementById('locationBtn').addEventListener('click', () => {
+                LocationManager.getCurrentLocation();
+            });
+            
+            // Audio recording
+            document.getElementById('startRecordBtn').addEventListener('click', () => {
+                AudioManager.startRecording();
+            });
+            
+            document.getElementById('stopRecordBtn').addEventListener('click', () => {
+                AudioManager.stopRecording();
+            });
+            
+            // Navigation
+            document.getElementById('hamburgerBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+            
+            document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('active');
+            });
+            
+            // Expert consultation
+            document.getElementById('connectBtn').addEventListener('click', () => {
+                Utils.showNotification('Connecting you with Dr. Emily Rodriguez, Plant Pathologist...');
+                setTimeout(() => {
+                    Utils.showNotification('Expert consultation scheduled for today at 3:00 PM');
+                }, 2000);
+            });
+            
+            // Notification handlers
+            document.getElementById('notificationIcon').addEventListener('click', () => {
+                Utils.showNotification('Notification center opened');
+                AppState.notifications = [];
+                Utils.updateNotificationBadge();
+            });
+            
+            document.getElementById('messageIcon').addEventListener('click', () => {
+                Utils.showNotification('Messages opened');
+            });
+        }
+
+        // Dismiss notification
+        function dismissNotification() {
+            document.getElementById('notificationBanner').style.display = 'none';
+        }
+
+        // Initialize application
+        function initializeApp() {
+            // Update user info in header
+            document.getElementById('userName').textContent = AppState.currentUser.name;
+            document.getElementById('userAvatar').textContent = AppState.currentUser.avatar;
+            document.getElementById('userRole').textContent = AppState.currentUser.role;
+            
+            // Initialize recent diagnoses display
+            DiagnosisSystem.updateRecentDisplay();
+            
+            // Initialize all device sensors
+            SensorsManager.initializeAllSensors();
+            
+            // Set up event listeners
+            initializeEventListeners();
+            
+            // Update notification badge
+            Utils.updateNotificationBadge();
+            
+            // Simulate some notifications
+            setTimeout(() => {
+                Utils.showNotification('Welcome to Phylora Plant Diagnosis System!');
+            }, 1000);
+            
+            setTimeout(() => {
+                Utils.showNotification('Tip: Ensure good lighting when capturing plant images');
+            }, 3000);
+            
+            console.log('Phylora Plant Diagnosis System initialized');
+        }
+
+        // Start the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
